@@ -3,862 +3,876 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>THE REAPER</title>
-
+<meta name="theme-color" content="#080706">
+<title>THE REAPER — Candor</title>
 <style>
-body{
-  background:rgb(0, 0, 0);
-  backdrop-filter: blur(15px) saturate(180%);
-   /*background: url(bg8.jpg) no-repeat center center fixed;*/
-  background-size: cover;
-  height: 100%;
-  color:white;
-  font-family:"Snap ITC", cursive;
-  margin:0;
-  overflow-x:hidden;
-  cursor:url('blood-cursor.png'), crosshair;
-  }
-
-/* STATIC OVERLAY CANVAS - sits on top of background but behind content */
-#static-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.65;
+:root {
+  --ink: #080706;
+  --ink-soft: #100d0b;
+  --panel: rgba(20, 15, 13, .88);
+  --panel-light: rgba(35, 23, 20, .72);
+  --gold: #c6a16b;
+  --gold-bright: #e5c18b;
+  --gold-dim: #806344;
+  --blossom: #d9a0a0;
+  --blossom-light: #f0c4bd;
+  --red: #7c292d;
+  --red-dark: #401719;
+  --text: #eadbc8;
+  --muted: #b5a18d;
+  --line: rgba(198, 161, 107, .38);
+  --serif: "Baskerville", "Palatino Linotype", "Book Antiqua", Georgia, serif;
 }
-
-/* content sits above static layer */
-h1, .section, #world, #profile-card, .fam, #brother, #author, #au, 
-.stats-layout, .weapons, .weapon-controls, #weapon, .info, .top, .traits {
-  position: relative;
-  z-index: 10;
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 50% 8%, rgba(92, 43, 39, .20), transparent 38rem),
+    radial-gradient(ellipse at 10% 60%, rgba(104, 57, 43, .10), transparent 30rem),
+    linear-gradient(180deg, #090807 0%, #100b09 48%, #080706 100%);
+  font-family: var(--serif);
+  letter-spacing: .025em;
+  overflow-x: hidden;
+  cursor: url("blood-cursor.png"), auto;
 }
-
-/* dark vignette overlay for readability */
 body::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.65) 95%);
+  inset: 0;
   pointer-events: none;
-  z-index: 2;
+  z-index: 0;
+  opacity: .22;
+  background-image:
+    linear-gradient(rgba(198,161,107,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(198,161,107,.018) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
 }
-
-/* ───────── SLIDE SYSTEM ───────── */
-.section{
-  padding:100px 40px;
-  position:relative;
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  background: radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,.48) 100%);
 }
-
-/* initial hidden state */
-.hidden{
-  opacity:0;
-  transition: all 0.5s ease-in-out;
-  will-change: transform, opacity;
+a { color: inherit; }
+img { display: block; max-width: 100%; object-fit: contain; }
+button, select { font: inherit; }
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(22px, 5vw, 76px);
+  min-height: 72px;
+  padding: 14px 24px;
+  background: rgba(8, 7, 6, .92);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(14px);
 }
-
-/* directions */
-.from-left{
-  transform: translateX(-100px);
+.site-nav a {
+  position: relative;
+  color: var(--gold-bright);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: .78rem;
+  letter-spacing: .2em;
+  transition: color .25s ease;
 }
-
-.from-right{
-  transform: translateX(100px);
+.site-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -8px;
+  height: 1px;
+  background: var(--blossom);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform .25s ease;
 }
+.site-nav a:hover { color: var(--blossom-light); }
+.site-nav a:hover::after { transform: scaleX(1); }
 
-/* visible state */
-.show{
-  opacity:1 !important;
-  transform: translateX(0) !important;
+main, footer { position: relative; z-index: 1; }
+.section {
+  position: relative;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: clamp(76px, 10vw, 130px) 0;
 }
-
-/* ───────── TEXT ───────── */
-h1{
-  text-align:center;
-  font-size:90px;
-  /* GLOW REMOVED */
+.section + .section { border-top: 1px solid rgba(198,161,107,.16); }
+.section::before, .section::after {
+  content: "✦";
+  position: absolute;
+  top: 34px;
+  color: var(--gold-dim);
+  font-size: 13px;
+  opacity: .8;
 }
-
-/* PAGE 1 */
-.top{
-  display:flex;
-  justify-content:center;
-  gap:40px;
-  align-items:flex-start;
-}
-
-.eyes{width:320px;}
-.mc{width:320px;}
-
-.info{
-  font-size:24px;
-  line-height:2;
-  backdrop-filter: blur(4px);
-  padding: 20px;
-  border-radius: 20px;
-}
-
-.smile{
-  width:300px;
-  animation:zoomSmile 10s ease-in-out infinite;
-}
-
-@keyframes zoomSmile{
-  0%{transform:scale(0.7);}
-  50%{transform:scale(1.05);}
-  100%{transform:scale(0.7);}
-}
-
-/* LEFT */
-.left-column{
-  display:flex;
-  flex-direction:column;
-}
-
-.traits{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin-top:70px;
-}
-
-.block{
-  padding:15px;
-  width:250px;
-  border-radius:10px;
-  transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
-  cursor: pointer;
-}
-
-/* GREEN BLOCK */
-.green{
-  background:#0f3d0f;
-  border-left: 3px solid #2ecc2e;
-}
-
-/* RED BLOCK */
-.red{
-  background:#5a0000;
-  border-left: 3px solid #cc0000;
-}
-
-/* HOVER EFFECT (BOTH) */
-.block:hover{
-  transform: scale(1.2);
-  filter: brightness(1.2);
-  z-index: 2;
-  /* GLOW REMOVED */
-}
-/* PAGE 2 */
-.stats-layout{
-  display:flex;
-  justify-content:center;
-  gap:80px;
-  margin-top:120px;
-}
-
-.skeleton{width:350px;}
-
-.stats{
-  display:flex;
-  flex-direction:column;
-}
-
-.stat{
-  background:#4b0000;
-  padding:10px 25px;
-  margin:10px 0;
-  border-radius:20px;
-  cursor:pointer;
-  transition: all 0.2s;
-  border-left: 3px solid #8b0000;
-}
-
-.stat:hover{
-  background:#7a0a0a;
-  transform: translateX(5px);
-  /* GLOW REMOVED */
-}
-
-.bar{
-  width:400px;
-  height:8px;
-  background:#222;
-  margin-bottom:15px;
-  border-radius:10px;
-  overflow:hidden;
-}
-
-.fill{
-  height:100%;
-  background:#8b0000;
-  width:0%;
-  transition:1s ease-in-out;
-  /* GLOW REMOVED */
-}
-
-/* PAGE 3 */
-.weapons{
-  text-align:center;
-  margin-top:150px;
-}
-
-.scale{width:650px;}
-
-/* FIXED DROPDOWN POSITION */
-.weapon-controls{
-  position:absolute;
-  top:600px;
-  left:49%;
-  transform:translateX(-50%);
-  display:flex;
-  gap:90px;
-  align-items:center;
-}
-
-select, button{
-  background:#4b0000;
-  color:white;
-  border:1px solid #8b0000;
-  padding:10px 20px;
-  border-radius:10px;
-  cursor:pointer;
-  transition: all 0.2s;
-}
-
-select:hover, button:hover{
-  background:#8b0000;
-  /* GLOW REMOVED */
-  transform: scale(1.02);
-}
-
-.weapon-img{
-  margin-top:40px;
-  width:200px;
-}
-
-.weapon-card{
-  margin-top:40px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-
-  /* glassmorphism core */
-  background: rgba(255, 0, 0, 0.08);
-  backdrop-filter: blur(15px) saturate(180%);
-  -webkit-backdrop-filter: blur(15px) saturate(180%);
-
-  /* border tuning */
-  border: 1px solid rgba(255, 0, 0, 0.25);
-  border-right-color: rgba(255, 0, 0, 0.15);
-  border-bottom-color: rgba(255, 0, 0, 0.10);
-
-  border-radius: 12px;
-  padding: 20px;
-  width: 250px;
-  margin-left: auto;
-  margin-right: auto;
-
-  /* depth */
-  box-shadow: 
-      inset 0 1px 2px rgba(255, 255, 255, 0.15),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.35),
-      0 8px 25px rgba(0, 0, 0, 0.6),
-      0 0 20px rgba(139, 0, 0, 0.4);
-}
-
-.weapon-desc{
-  margin-top:12px;
-  font-size:12px;
-  opacity:0.85;
-  text-align:center;
-  font-family:Arial;
-
-  color: #ffb3b3;
-  letter-spacing: 0.5px;
-}
-
-.weapon-img{
-  width:200px;
-  filter: drop-shadow(0 0 10px rgba(255,0,0,0.4));
-}
-
-#world {
+.section::before { left: 0; }
+.section::after { right: 0; }
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--blossom);
   text-align: center;
-  margin-bottom: 20%;
-  font-size: 1.3rem;
-  background: rgba(255, 0, 0, 0.1);
-  backdrop-filter: blur(15px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.141);
-  border-right-color: rgba(255, 255, 255, 0.1);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-  margin-right: 5px;
-  box-shadow: 
-      inset 0 1px 2px rgba(255, 255, 255, 0.45),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.15),
-      0 8px 20px rgba(0, 0, 0, 0.3),
-      0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 40px;
-  border-radius: 30px;
+  text-transform: uppercase;
+  font-size: .72rem;
+  letter-spacing: .34em;
 }
-
-#profile-card {
-  margin-left: 12%;
-  margin-bottom: 20%;
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { font-weight: 400; }
+h1 {
+  margin: 0 0 24px;
+  color: var(--gold-bright);
   text-align: center;
-  background: rgba(255, 0, 0, 0.1);
-  backdrop-filter: blur(15px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.141);
-  border-right-color: rgba(255, 255, 255, 0.1);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-  margin-right: 5px;
-  box-shadow: 
-      inset 0 1px 2px rgba(255, 255, 255, 0.45),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.15),
-      0 8px 20px rgba(0, 0, 0, 0.3),
-      0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 80%;
-  padding: 15px;
+  text-transform: uppercase;
+  font-size: clamp(2.8rem, 8vw, 6.2rem);
+  line-height: 1.04;
+  letter-spacing: .13em;
+  text-shadow: 0 3px 24px rgba(0,0,0,.8);
 }
-
-.fam {
+h2 {
+  color: var(--gold-bright);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  letter-spacing: .09em;
+}
+h3 {
+  color: var(--blossom-light);
+  text-transform: uppercase;
+  font-size: .9rem;
+  letter-spacing: .18em;
+}
+.section-heading {
   text-align: center;
+  margin-bottom: 58px;
+}
+.section-heading h2 {
+  display: inline-block;
+  position: relative;
   margin-bottom: 0;
+  padding: 0 34px 18px;
+}
+.section-heading h2::after {
+  content: "";
+  position: absolute;
+  width: 74%;
+  height: 1px;
+  bottom: 0;
+  left: 13%;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.section-heading p {
+  color: var(--muted);
+  margin: 16px 0 0;
+  font-size: .86rem;
+  letter-spacing: .14em;
+}
+.panel {
+  position: relative;
+  background: linear-gradient(145deg, rgba(35,24,20,.86), rgba(13,10,9,.91));
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 48px rgba(0,0,0,.35), inset 0 0 30px rgba(198,161,107,.025);
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(198,161,107,.13);
+  pointer-events: none;
+}
+.gold-rule {
+  width: min(220px, 50%);
+  height: 1px;
+  margin: 24px auto;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
-.fam h2 {
-  margin-right: 35%;
-}
-#brother {
-  display: flex;
-  margin-left: 5%;
-  justify-content: space-evenly;
-  margin-bottom: 0%;
-  padding: 20px;
-  border-radius: 30px;
-}
-
-#author {
-  margin-top: 15%;
-  padding: 5%;
-}
-
-
-
-#first {
-  display: flex;
-  flex-direction: column;
-  margin-left: 38%;
-  width: 100%;
+/* Opening character profile */
+.hero { padding-top: 80px; }
+.hero-title { margin-bottom: 12px; }
+.hero-subtitle {
+  color: var(--blossom);
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .32em;
+  font-size: .78rem;
+  margin-bottom: 58px;
 }
-
-#first h2 {
-  font-size: 2rem;
-  margin-bottom: 0%;
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, .8fr) minmax(220px, 1fr) minmax(220px, .9fr);
+  gap: clamp(22px, 4vw, 58px);
+  align-items: center;
 }
-
-#first p {
-  font-size: 1.1rem;
+.left-column { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.mc {
+  width: 100%;
+  max-height: 590px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 28px rgba(0,0,0,.72));
 }
-
-#first img {
-  border-radius: 100%;
-  /* GLOW REMOVED */
+.traits { width: 100%; display: grid; gap: 12px; }
+.block {
+  padding: 17px 18px;
+  border: 1px solid rgba(198,161,107,.32);
+  border-left: 2px solid var(--gold);
+  background: linear-gradient(110deg, rgba(72,38,34,.62), rgba(17,12,11,.78));
+  color: var(--text);
+  font-size: .92rem;
+  line-height: 1.9;
+  letter-spacing: .06em;
+  transition: transform .3s ease, border-color .3s ease, background .3s ease;
 }
-
-#info {
-  margin-right: 100%;
-  width: 30%;
+.block.red { border-left-color: var(--blossom); background: linear-gradient(110deg, rgba(86,31,35,.48), rgba(17,12,11,.78)); }
+.block:hover { transform: translateX(5px); border-color: var(--gold-bright); }
+.info {
+  padding: 28px;
+  line-height: 2.1;
+  font-size: 1rem;
+  text-align: center;
+  color: var(--muted);
 }
+.info strong { color: var(--gold-bright); font-weight: 400; }
+.status { color: #8ca887; letter-spacing: .12em; }
 
-#extra {
+/* Character statistics */
+.stats-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, .9fr) minmax(280px, 1fr);
+  gap: clamp(34px, 7vw, 90px);
+  align-items: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.skeleton {
+  width: min(100%, 350px);
+  max-height: 520px;
+  margin: 0 auto;
+  filter: sepia(.22) drop-shadow(0 0 18px rgba(198,161,107,.15));
+}
+.stats { width: 100%; }
+.stat {
   display: flex;
   justify-content: space-between;
-  margin-top: 5%;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 17px;
+  margin: 10px 0 7px;
+  color: var(--text);
+  text-transform: uppercase;
+  font-size: .83rem;
+  letter-spacing: .13em;
+  border: 1px solid rgba(198,161,107,.2);
+  border-left: 2px solid var(--gold-dim);
+  background: rgba(30,20,17,.72);
+  cursor: pointer;
+  transition: .25s ease;
+}
+.stat:hover, .stat:focus-visible {
+  outline: none;
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: rgba(75,39,35,.52);
+  transform: translateX(4px);
+}
+.stat-value { color: var(--blossom); font-size: .76rem; }
+.bar {
+  height: 4px;
+  margin: 0 10px 13px;
+  overflow: hidden;
+  background: rgba(255,255,255,.09);
+}
+.fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--red-dark), var(--blossom), var(--gold));
+  transition: width 1s ease;
 }
 
-#intro {
-width: 50%;
+/* Weapons */
+.weapons { text-align: center; }
+.scale { width: min(650px, 90%); margin: 0 auto 32px; opacity: .88; filter: sepia(.35); }
+.weapon-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 20px auto 0;
+}
+select, button {
+  min-height: 46px;
+  padding: 11px 20px;
+  color: var(--gold-bright);
+  background: #170f0d;
+  border: 1px solid var(--gold-dim);
+  border-radius: 0;
+  text-transform: uppercase;
+  font-size: .72rem;
+  letter-spacing: .15em;
+  cursor: pointer;
+  transition: background .25s ease, border-color .25s ease, color .25s ease, transform .25s ease;
+}
+select { min-width: 210px; }
+select:focus-visible, button:focus-visible { outline: 2px solid var(--blossom); outline-offset: 3px; }
+button:hover, select:hover { color: #fff0df; background: #452126; border-color: var(--blossom); transform: translateY(-2px); }
+.weapon-card {
+  width: min(340px, 100%);
+  margin: 38px auto 0;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.weapon-img { width: 200px; max-height: 250px; filter: sepia(.12) drop-shadow(0 0 12px rgba(217,160,160,.2)); }
+.weapon-desc { margin: 18px 0 0; color: var(--muted); font: .9rem/1.8 Georgia, serif; }
+
+/* World and ability */
+.story-panel {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 58px);
   text-align: center;
-  background-image: url("bg4.jpg");
-  /*background: rgba(255, 0, 0, 0.1);*/
-  backdrop-filter: blur(15px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.141);
-  border-right-color: rgba(255, 255, 255, 0.1);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-  margin-right: 5px;
-  box-shadow: 
-      inset 0 1px 2px rgba(255, 255, 255, 0.45),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.15),
-      0 8px 20px rgba(0, 0, 0, 0.3),
-      0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 25px;
+}
+.story-panel h2 { margin-bottom: 30px; }
+.story-panel p { color: var(--muted); font-size: clamp(1rem, 2vw, 1.2rem); line-height: 2; margin: 13px 0; }
+.story-panel p:nth-of-type(2n) { color: var(--blossom-light); }
+.ability-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(260px, 1.3fr);
+  gap: 36px;
+  align-items: center;
+  max-width: 920px;
+  margin: 46px auto 0;
+  padding: clamp(25px, 4vw, 42px);
+}
+.ability-image { width: min(100%, 260px); margin: auto; filter: sepia(.2) drop-shadow(0 0 14px rgba(198,161,107,.15)); }
+.ability-copy p { line-height: 1.85; color: var(--muted); margin: 10px 0; }
+em { color: var(--blossom-light); font-style: normal; letter-spacing: .04em; }
+
+/* Family */
+.family-intro { text-align: center; margin-bottom: 30px; }
+.family-intro h3 { margin: 10px 0; }
+.family-intro p { color: var(--muted); }
+.family-layout { margin-top: 30px; }
+.family-layout .stats-layout { max-width: 850px; }
+.family-layout .stat { cursor: pointer; }
+.occupation { margin: 30px 0 0; text-align: center; color: var(--blossom-light); letter-spacing: .15em; text-transform: uppercase; font-size: .78rem; }
+
+/* Author */
+.author-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, .75fr) minmax(280px, 1.25fr);
+  gap: 38px;
+  align-items: center;
+}
+.author-portrait {
+  width: min(300px, 100%);
+  max-height: 390px;
+  margin: auto;
+  border: 1px solid var(--gold-dim);
+  padding: 8px;
+  background: rgba(198,161,107,.06);
+  object-fit: cover;
+}
+.author-name { margin-bottom: 10px; color: var(--gold-bright); letter-spacing: .14em; }
+.author-role { color: var(--blossom); font-size: .78rem; letter-spacing: .16em; line-height: 1.8; }
+.author-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 34px;
+}
+.author-panel { padding: 25px; }
+.author-panel p { color: var(--muted); line-height: 1.8; font-size: .92rem; }
+.author-panel p:last-child { margin-bottom: 0; }
+.software-icons { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; }
+.software-icons img { width: 68px; height: 68px; object-fit: contain; filter: sepia(.15); transition: transform .25s ease; }
+.software-icons img:hover { transform: translateY(-5px); }
+footer {
+  padding: 30px 20px 42px;
+  border-top: 1px solid var(--line);
+  color: var(--gold-dim);
+  text-align: center;
+  font-size: .72rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
 }
 
-#goals {
-    width: 40%;
-  margin-left: 5%;
-  background-image: url("bg4.jpg");
-  /*background: rgba(255, 0, 0, 0.1);*/
-  backdrop-filter: blur(15px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.141);
-  border-right-color: rgba(255, 255, 255, 0.1);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-  margin-right: 5px;
-  box-shadow: 
-      inset 0 1px 2px rgba(255, 255, 255, 0.45),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.15),
-      0 8px 20px rgba(0, 0, 0, 0.3),
-      0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 25px;
+/* Dark dossier direction + layered parallax */
+body { background: radial-gradient(ellipse at 50% 10%, rgba(89,12,20,.17), transparent 34rem), linear-gradient(180deg,#050505 0%,#0b0809 48%,#030303 100%); }
+body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(160,20,30,.025) 1px,transparent 1px); }
+:root { --gold:#a98a63; --gold-bright:#d0b18a; --gold-dim:#594331; --blossom:#8e3038; --blossom-light:#c36a70; --red:#8e1825; --red-dark:#35080e; --text:#e0d6ce; --muted:#9d918a; --line:rgba(153,102,82,.3); }
+.hero { width:min(1320px,calc(100% - 48px)); min-height:calc(100vh - 72px); padding-top:clamp(55px,8vh,100px); isolation:isolate; }
+.hero::before,.hero::after { content:none; }
+.hero-backdrop { position:absolute; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+.backdrop-orb { position:absolute; width:min(65vw,780px); aspect-ratio:1; left:50%; top:45%; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(circle,rgba(93,8,20,.20),rgba(35,5,10,.08) 42%,transparent 70%); }
+.backdrop-line { position:absolute; width:1px; height:85%; left:50%; top:8%; background:linear-gradient(transparent,rgba(151,30,39,.22),transparent); }
+.hero-title { font-size:clamp(3.2rem,9vw,7.4rem); letter-spacing:.19em; text-shadow:0 0 35px rgba(119,7,22,.23); }
+.hero-subtitle { color:#a64a50; margin-bottom:clamp(34px,5vh,65px); }
+.hero-subtitle span { color:var(--gold-dim); padding:0 10px; }
+.hero-dossier { display:grid; grid-template-columns:minmax(190px,.72fr) minmax(300px,1.2fr) minmax(210px,.78fr); align-items:stretch; gap:clamp(18px,3vw,42px); max-width:1160px; margin:0 auto; }
+.dossier-rail,.dossier-note { position:relative; align-self:center; padding:24px 22px; background:linear-gradient(145deg,rgba(19,15,15,.9),rgba(5,5,5,.86)); border-top:1px solid rgba(166,57,62,.55); border-bottom:1px solid rgba(166,57,62,.24); }
+.dossier-rail::before,.dossier-note::before { content:""; position:absolute; inset:7px; border:1px solid rgba(169,138,99,.12); pointer-events:none; }
+.rail-label,.note-index { display:block; color:#a64a50; font-size:.63rem; letter-spacing:.22em; text-transform:uppercase; margin:0 0 20px; }
+.identity-block { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+.identity-block > span:first-child { min-width:28px; color:var(--gold-dim); font-size:.85rem; }
+.identity-block small,.identity-block strong { display:block; }
+.identity-block small { color:#81736d; font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; margin-bottom:4px; }
+.identity-block strong { color:#ddd0c5; font-size:.84rem; font-weight:400; letter-spacing:.05em; }
+.status-dot { width:7px;height:7px;min-width:7px;border-radius:50%;background:#6f9b69;box-shadow:0 0 10px rgba(111,155,105,.8); margin:0 10px; }
+.rail-divider { height:1px;background:linear-gradient(90deg,#783037,transparent);margin:20px 0; }
+.trait-list { list-style:none; padding:0; margin:0; display:grid; grid-template-columns:1fr 1fr; gap:9px 12px; }
+.trait-list li { color:#b7aaa1; font-size:.72rem; letter-spacing:.04em; }
+.trait-list li::before { content:"/"; color:#963b42; margin-right:7px; }
+.hero-portrait-wrap { position:relative; min-height:520px; display:flex; align-items:flex-end; justify-content:center; background:radial-gradient(ellipse at 50% 70%,rgba(105,9,22,.18),transparent 62%); border-bottom:1px solid rgba(153,49,56,.42); }
+.hero-portrait-wrap::before { content:""; position:absolute; inset:5% 10% 0; border:1px solid rgba(169,138,99,.13); border-bottom:0; clip-path:polygon(50% 0,100% 14%,100% 100%,0 100%,0 14%); }
+.mc { position:relative; z-index:1; width:100%; height:100%; max-height:610px; object-fit:contain; object-position:center bottom; filter:drop-shadow(0 20px 32px rgba(0,0,0,.9)) drop-shadow(0 0 22px rgba(95,7,20,.16)); }
+.portrait-stamp { position:absolute; z-index:2; top:25px; left:50%; transform:translateX(-50%); color:#9c454b; font-size:.62rem; letter-spacing:.3em; white-space:nowrap; }
+.portrait-stamp span { color:var(--gold-dim); }
+.portrait-caption { position:absolute; z-index:3; bottom:18px; left:0; right:0; display:flex; justify-content:space-between; gap:10px; padding:12px 16px; background:linear-gradient(90deg,rgba(5,5,5,.92),rgba(5,5,5,.4)); border-left:2px solid #74242b; }
+.portrait-caption span { color:#d0b18a; font-size:.68rem; letter-spacing:.2em; }
+.portrait-caption small { color:#8d7e77; font-size:.65rem; }
+.dossier-note { padding:30px 24px; }
+.dossier-note h2 { color:#d0b18a; font-size:clamp(1.35rem,2vw,1.8rem); line-height:1.35; letter-spacing:.02em; margin:32px 0 18px; }
+.dossier-note p { color:#a99b93; font-size:.91rem; line-height:1.9; }
+.note-warning { display:flex; flex-direction:column; gap:7px; margin-top:36px; padding-top:16px; border-top:1px solid rgba(166,57,62,.35); }
+.note-warning span { color:#8e7770; font-size:.6rem; letter-spacing:.2em; }
+.note-warning strong { color:#a83b43; font-size:1.1rem; letter-spacing:.16em; font-weight:400; }
+.note-redaction { display:grid; gap:5px; margin-top:26px; }
+.note-redaction i { display:block; height:5px; background:linear-gradient(90deg,#351216,#17090b); width:100%; }
+.note-redaction i:nth-child(2) { width:72%; }.note-redaction i:nth-child(3) { width:88%; }
+.hero-foot { display:flex; justify-content:space-between; gap:15px; max-width:1160px; margin:26px auto 0; color:#66534a; font: .58rem/1.6 Arial,sans-serif; letter-spacing:.18em; }
+.petal-field { position:fixed; inset:0; z-index:2; overflow:hidden; pointer-events:none; }
+.petal { position:absolute; top:-8vh; width:7px; height:12px; opacity:0; border-radius:80% 5% 80% 5%; background:linear-gradient(135deg,#9b3038,#3b090f); box-shadow:0 0 8px rgba(112,10,25,.22); animation:petal-fall linear infinite; }
+@keyframes petal-fall { 0%{transform:translate3d(0,-8vh,0) rotate(0deg);opacity:0} 12%{opacity:.52} 85%{opacity:.34} 100%{transform:translate3d(var(--drift),112vh,0) rotate(620deg);opacity:0} }
+@media(max-width:900px){.hero-dossier{grid-template-columns:minmax(180px,.8fr) minmax(260px,1.2fr)}.dossier-note{grid-column:1/-1;max-width:620px;width:100%;margin:0 auto}.hero-portrait-wrap{min-height:470px}.dossier-note h2{margin-top:14px}}
+@media(max-width:620px){.hero{width:calc(100% - 30px)}.hero-dossier{grid-template-columns:1fr}.hero-portrait-wrap{grid-row:1;min-height:430px}.dossier-rail{grid-row:2}.dossier-note{grid-column:auto}.hero-foot{flex-direction:column;text-align:center;gap:5px}.trait-list{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){.petal{display:none}}
+
+
+/* Scale interaction: controls sit over the balance graphic rather than below it. */
+.scale-stage { position:relative; width:min(760px,100%); margin:0 auto 24px; min-height:190px; display:grid; place-items:center; }
+.scale-stage .scale { width:100%; max-height:270px; margin:0; object-fit:contain; }
+.scale-stage .weapon-controls { position:absolute; inset:0; display:flex; justify-content:space-between; align-items:center; gap:clamp(12px,8vw,110px); padding:0 clamp(10px,12%,95px); margin:0; pointer-events:none; }
+.scale-stage .weapon-controls > * { pointer-events:auto; }
+.scale-stage select { width:min(220px,38%); min-width:0; background:rgba(10,7,7,.94); box-shadow:0 8px 24px rgba(0,0,0,.7); }
+.scale-stage button { max-width:190px; background:rgba(10,7,7,.94); box-shadow:0 8px 24px rgba(0,0,0,.7); }
+
+/* Entrance: dossier elements glide into place, then settle with a restrained landing. */
+.hero-dossier .dossier-rail { animation: dossier-left-land 1.05s cubic-bezier(.2,.85,.25,1) both; }
+.hero-dossier .hero-portrait-wrap { animation: dossier-center-land 1.15s cubic-bezier(.2,.85,.25,1) .08s both; }
+.hero-dossier .dossier-note { animation: dossier-right-land 1.05s cubic-bezier(.2,.85,.25,1) .16s both; }
+.hero-portrait-wrap .mc { animation: portrait-settle 1.25s cubic-bezier(.18,.9,.25,1) .18s both; transform-origin:center bottom; }
+@keyframes dossier-left-land { from { opacity:0; transform:translate3d(-72px,18px,0); } 72% { opacity:1; transform:translate3d(7px,-2px,0); } to { opacity:1; transform:translate3d(0,0,0); } }
+@keyframes dossier-center-land { from { opacity:0; transform:translate3d(0,-55px,0) scale(.97); } 72% { opacity:1; transform:translate3d(0,7px,0) scale(1.005); } to { opacity:1; transform:translate3d(0,0,0) scale(1); } }
+@keyframes dossier-right-land { from { opacity:0; transform:translate3d(72px,18px,0); } 72% { opacity:1; transform:translate3d(-7px,-2px,0); } to { opacity:1; transform:translate3d(0,0,0); } }
+@keyframes portrait-settle { from { opacity:0; transform:translateY(38px) scale(.96); } 70% { opacity:1; transform:translateY(-5px) scale(1.01); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+/* Consistent hover and keyboard focus treatment across interactive and visual elements. */
+:where(a, button, select, [role="button"], .panel, .block, .identity-block, .trait-list li, .ability-image, .author-portrait, .software-icons img, .weapon-img) {
+  transition: outline-color .22s ease, border-color .22s ease, box-shadow .22s ease, filter .22s ease, color .22s ease, background-color .22s ease, transform .22s ease;
+}
+:where(a, button, select, [role="button"], .panel, .block, .identity-block, .trait-list li, .ability-image, .author-portrait, .software-icons img, .weapon-img):hover,
+:where(a, button, select, [role="button"], .panel, .block, .identity-block, .trait-list li, .ability-image, .author-portrait, .software-icons img, .weapon-img):focus-visible {
+  outline:1px solid rgba(195,106,112,.72);
+  outline-offset:3px;
+  box-shadow:0 0 18px rgba(142,24,37,.2), 0 0 0 1px rgba(169,138,99,.12);
+  background-color:rgba(100,25,32,.08);
+}
+:where(a, button, select, [role="button"]):focus-visible { outline:2px solid var(--gold-bright); outline-offset:4px; }
+.trait-list li:hover { color:var(--gold-bright); transform:translateX(3px); }
+.identity-block:hover { background:rgba(100,25,32,.12); }
+@media(max-width:620px) {
+  .scale-stage { min-height:150px; }
+  .scale-stage .weapon-controls { padding:0 5%; gap:8px; }
+  .scale-stage select { width:46%; font-size:.58rem; padding:9px 7px; }
+  .scale-stage button { width:46%; font-size:.58rem; padding:9px 7px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero-dossier .dossier-rail, .hero-dossier .hero-portrait-wrap, .hero-dossier .dossier-note, .hero-portrait-wrap .mc { animation:none; }
 }
 
-em {
-  font-size: 1.3rem;
-  color: #ff8888;
+/* Scroll reveal */
+.hidden { opacity: 0; transform: translateY(28px); transition: opacity .75s ease, transform .75s ease; }
+.hidden.show { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  .hidden { opacity: 1; transform: none; }
+}
+@media (max-width: 800px) {
+  .hero-grid { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
+  .hero-grid > .info-wrap { grid-column: 1 / -1; }
+  .info { max-width: 520px; margin: auto; }
+  .author-layout { grid-template-columns: 1fr; text-align: center; }
+  .author-portrait { max-height: 330px; }
+}
+@media (max-width: 620px) {
+  .site-nav { gap: 16px; min-height: 62px; padding: 12px 10px; }
+  .site-nav a { font-size: .62rem; letter-spacing: .1em; }
+  .section { width: min(100% - 30px, 520px); padding: 76px 0; }
+  .hero-grid, .stats-layout, .ability-grid, .author-panels { grid-template-columns: 1fr; }
+  .hero-grid { gap: 28px; }
+  .mc { max-height: 460px; }
+  .left-column { max-width: 320px; margin: auto; }
+  .traits { grid-template-columns: 1fr 1fr; }
+  .block { padding: 13px; font-size: .8rem; }
+  .stats-layout { gap: 25px; }
+  .skeleton { max-height: 390px; }
+  .ability-grid { text-align: center; }
+  .author-panels { gap: 14px; }
 }
 </style>
 </head>
-
 <body>
+<nav class="site-nav" aria-label="Page navigation">
+  <a href="#profile">Profile</a>
+  <a href="#statistics">Statistics</a>
+  <a href="#weapons">Weapons</a>
+  <a href="#awakening">The Awakening</a>
+  <a href="#author">Author</a>
+</nav>
+<div class="petal-field" aria-hidden="true"></div>
 
-<!-- STATIC NOISE CANVAS - on top of background -->
-<canvas id="static-canvas"></canvas>
-
-<h1 class="hidden from-left">THE REAPER</h1>
-
-<!-- PAGE 1 -->
-<div class="section hidden from-left">
-
-<div class="top">
-
-  <div class="hidden from-left">
-    <div class="left-column">
-      <img src="eyes.png" class="eyes" onerror="this.src='https://placehold.co/320x200/4a0000/ff8888?text=EYES'">
-
-      <div class="traits">
-        <div class="block green">Sin Perception<br>Adaptive<br>Patient</div>
-        <div class="block red">Overconfident<br>Addicted<br>Obsessive</div>
+<main>
+  <section class="section hero" id="profile">
+    <div class="hero-backdrop" aria-hidden="true"><span class="backdrop-orb"></span><span class="backdrop-line"></span></div>
+    <p class="eyebrow">Confidential character file · Candor archive</p>
+    <h1 class="hero-title">The Reaper</h1>
+    <p class="hero-subtitle">Subject 001 <span>／</span> Michael Miller</p>
+    <div class="hero-dossier">
+      <aside class="dossier-rail">
+        <p class="rail-label">Subject profile</p>
+        <div class="identity-block"><span>01</span><div><small>Full name</small><strong>Michael Miller</strong></div></div>
+        <div class="identity-block"><span>25</span><div><small>Age</small><strong>Years</strong></div></div>
+        <div class="identity-block"><span>♂</span><div><small>Gender</small><strong>Male</strong></div></div>
+        <div class="identity-block"><span class="status-dot"></span><div><small>Current status</small><strong class="status">Alive</strong></div></div>
+        <div class="rail-divider"></div>
+        <p class="rail-label">Observed traits</p>
+        <ul class="trait-list"><li>Sin perception</li><li>Adaptive</li><li>Patient</li><li>Overconfident</li><li>Addicted</li><li>Obsessive</li></ul>
+      </aside>
+      <div class="hero-portrait-wrap" data-parallax="0.13">
+        <img src="mc.png" class="mc" alt="Michael Miller">
+      </div>
+      <aside class="dossier-note">
+        <span class="note-index">CASE NOTE / 001-A</span>
+        <h2>“A judge with no court.”</h2>
+        <p>He sees what people hide. Their guilt leaves a mark, and he has appointed himself the one who decides what it means.</p>
+        <div class="note-warning"><span>THREAT ASSESSMENT</span><strong>EXTREME</strong></div>
+        <div class="note-redaction" aria-hidden="true"><i></i><i></i><i></i></div>
+      </aside>
+    </div>
+    <div class="hero-foot"><span>FILE STATUS: OPEN</span><span>LAST UPDATED: UNKNOWN</span><span>LOCATION: REDACTED</span></div>
+  </section>
+  <section class="section" id="statistics">
+    <div class="section-heading">
+      <p class="eyebrow">Subject analysis</p>
+      <h2>Attributes</h2>
+      <p>Select an attribute to reveal its measure</p>
+    </div>
+    <div class="stats-layout">
+      <div class="hidden">
+        <img src="mc-outline.png" class="skeleton" id="skillImage" alt="Character silhouette">
+      </div>
+      <div class="stats hidden">
+        <div class="stat" role="button" tabindex="0" data-percent="60" data-image="wisdom.png"><span>Wisdom</span><span class="stat-value">60%</span></div><div class="bar"><div class="fill"></div></div>
+        <div class="stat" role="button" tabindex="0" data-percent="80" data-image="strength.png"><span>Strength</span><span class="stat-value">80%</span></div><div class="bar"><div class="fill"></div></div>
+        <div class="stat" role="button" tabindex="0" data-percent="83" data-image="dexterity.png"><span>Dexterity</span><span class="stat-value">83%</span></div><div class="bar"><div class="fill"></div></div>
+        <div class="stat" role="button" tabindex="0" data-percent="85" data-image="intelligence.png"><span>Intelligence</span><span class="stat-value">85%</span></div><div class="bar"><div class="fill"></div></div>
+        <div class="stat" role="button" tabindex="0" data-percent="30" data-image="mc-outline.png"><span>Charisma</span><span class="stat-value">30%</span></div><div class="bar"><div class="fill"></div></div>
+        <div class="stat" role="button" tabindex="0" data-percent="100" data-image="mc.png"><span>Constitution</span><span class="stat-value">100%</span></div><div class="bar"><div class="fill"></div></div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <img src="mc.png" class="mc" onerror="this.src='https://placehold.co/400x500/2d0202/ffaaaa?text=REAPER'">
-
-  <div class="hidden from-right">
-    <div class="info from-right">
-      AKA Michael Miller<br>
-      Age: 25<br>
-      Gender: Male<br>
-      Status: <span style="color:lime;">ALIVE</span>
-      <br><br>
-      <img src="smile.png" class="smile" onerror="this.src='https://placehold.co/300x200/4a0000/ffaaaa?text=SMILE'">
+  <section class="section weapons" id="weapons">
+    <div class="section-heading">
+      <p class="eyebrow">Methods of judgement</p>
+      <h2>Weapons</h2>
+      <p>Choose a sin to reveal its corresponding weapon</p>
     </div>
-  </div>
-
-</div>
-
-</div>
-
-<!-- PAGE 2 -->
-<div>
-
-<div class="stats-layout">
-
-  <div class="hidden from-left">
-    <img src="mc-outline.png" class="skeleton" id="skillImage" onerror="this.src='https://placehold.co/350x500/1f0101/dd8888?text=SHADOW'">
-  </div>
-<div class="hidden from-right">
-  <div class="stats">
-
-    <div class="stat" onclick="fillAndSwap(this,60,'wisdom.png')">Wisdom</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fillAndSwap(this,80,'strength.png')">Strength</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fillAndSwap(this,83,'dexterity.png')">Dexterity</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fillAndSwap(this,85,'intelligence.png')">Intelligence</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fillAndSwap(this,30,'mc-outline.png')">Charisma</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fillAndSwap(this,100,'mc.png')">Constitution</div>
-    <div class="bar"><div class="fill"></div></div>
-  </div>
-</div>
-</div>
-
-</div>
-
-<!-- PAGE 3 -->
-<div class="section weapons hidden from-left">
-
-<h1 class="hidden from-right">WEAPONS</h1>
-
-<img src="scale.png" class="scale" onerror="this.src='https://placehold.co/650x150/2e0000/ff9999?text=SCALE'">
-
-<div class="weapon-controls">
-  <select id="sin" class="hidden from-left">
-    <option value="">Choose Sin</option>
-    <option value="gas">Arsonist</option>
-    <option value="wire">Gossip</option>
-    <option value="corkscrew">Glutton</option>
-    <option value="crowbar">Hoarder</option>
-    <option value="icepick">Voyeur</option>
-    <option value="razor">Coward</option>
-    <option value="needle">Liar</option>
-    <option value="bolt">Thief</option>
-    <option value="pipe">Pride</option>
-    <option value="syringe">Envy</option>
-  </select>
-
-  <button id="weaponToggleBtn" onclick="toggleWeapon()" class="hidden from-right">Reveal Weapon</button>
-</div>
-
-<div id="weapon"></div>
-
-</div>
-<div id="world">
-  <h1>The Awakening</h1>
-  <p class="hidden from-left">Covid did not kill everyone.</p>
-  <p class="hidden from-right">Some woke up wrong.</p>
-  <p class="hidden from-left">Their fevers broke , but something else did not.</p>
-  <p class="hidden from-right">Now they hear whispers, see guilt like smoke and move things with their mind.</p>
-  <p class="hidden from-left">The virus did not just infect them - it unlocked abilities buried in human DNA for centuries.</p>
-</div>
-
-<div id="profile-card">
-  <h2 class="hidden from-right">Awakened ability: Sin perception</h2>
-  <img src="eye.png" width="300" height="300" class="hidden from-left" onerror="this.src='https://placehold.co/300x300/2a0000/ff8888?text=EYE'"/>
-  <p class="hidden from-right"><em>Origin:</em> COVID-19 mutation, 2020</p>
-  <p class="hidden from-left"><em>Class:</em> Sensory / Mental</p>
-  <p class="hidden from-right"><em>What it does:</em> Sees guilt as physical marks on the body. The mark shows the crime</p>
-  <p class="hidden from-left"><em>Limitation:</em> Only works on guilty consciences. Innocent people appear "blank"</p>
-  <p class="hidden from-right"><em>Corruption:</em> Prolonged used causes him to see his own sins multiplying. He slowing goes insane.</p>
-</div>
-
-<div class="fam">
-  <h1 class="hidden from-right">Family</h1>
-</div>
-
-<div id="brother">
-  <h2 class="hidden from-left">Name: Austin Miller </h2>
-  <h2 class="hidden from-right">Relationship: Brother</h2>
-</div>
-<div class="stats-layout">
-
-  <div class="hidden from-left">
-    <img src="smc-outline.png" class="skeleton" id="smc" onerror="this.src='https://placehold.co/350x500/1f0303/dd8888?text=AUSTIN'">
-  </div>
-<div class="hidden from-right">
-  <div class="stats">
-    
-
-    <div class="stat" onclick="fill(this,90)">Wisdom</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fill(this,80)">Strength</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fill(this,90)">Dexterity</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fill(this,90)">Intelligence</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fill(this,100)">Charisma</div>
-    <div class="bar"><div class="fill"></div></div>
-
-    <div class="stat" onclick="fill(this,100)">Constitution</div>
-    <div class="bar"><div class="fill"></div></div>
-  </div>
-</div>
-
-</div>
-
-<div class="fam">
-  <h2 class="hidden from-left">Occupation: Police Detective </h2>
-</div>
-
- <h1 id="au" class="hidden from-left">About author</h1>
-<div id="author">
-  <div id="first">
-    <img src="me.png" width="300" height="400" class="hidden from-right"/>
-    <div id="info">
-      <h2 class="hidden from-left">GISELLE MPYE</h2>
-      <p class="hidden from-right">ASPIRING SOFTWARE ENGINEER | MULTIMEDIA  STUDENT</p>
+    <div class="scale-stage hidden">
+      <img src="scale.png" class="scale" alt="Scales of judgement">
+      <div class="weapon-controls">
+      <select id="sin" aria-label="Choose a sin">
+        <option value="">Choose Sin</option>
+        <option value="gas">Arsonist</option>
+        <option value="wire">Gossip</option>
+        <option value="corkscrew">Glutton</option>
+        <option value="crowbar">Hoarder</option>
+        <option value="icepick">Voyeur</option>
+        <option value="razor">Coward</option>
+        <option value="needle">Liar</option>
+        <option value="bolt">Thief</option>
+        <option value="pipe">Pride</option>
+        <option value="syringe">Envy</option>
+      </select>
+        <button id="weaponToggleBtn" type="button">Reveal Weapon</button>
+      </div>
     </div>
-  </div>
-  <div id="extra">
-    <div id="intro" class="hidden from-left">
-      <p>Name: Giselle Mpye</p>
-      <p>Student: Multimedia Second year</p>
-      <p>Where: University of Pretoria</p>
-      <p>Values: Hardworking, Responsible and Passionate</p>
-      <p>Conclusion: Strive to do everything to the best of my ability with the grace and love of GOD and become the best version of myself</p>
+    <div id="weapon" aria-live="polite"></div>
+  </section>
+
+  <section class="section" id="awakening">
+    <div class="section-heading">
+      <p class="eyebrow">World record · 2020 onward</p>
+      <h2>The Awakening</h2>
     </div>
-    <div id="goals" class="hidden from-right">
-      <p> I am proficient in the following: </p>
+    <div class="story-panel panel hidden">
+      <p>Covid did not kill everyone.</p>
+      <p>Some woke up wrong.</p>
+      <p>Their fevers broke, but something else did not.</p>
+      <p>Now they hear whispers, see guilt like smoke and move things with their mind.</p>
+      <p>The virus did not just infect them — it unlocked abilities buried in human DNA for centuries.</p>
+    </div>
+
+    <div class="section-heading" style="margin:70px 0 30px">
+      <p class="eyebrow">Awakened ability</p>
+      <h2>Sin Perception</h2>
+    </div>
+    <div class="ability-grid panel hidden">
+      <img src="eye.png" class="ability-image" alt="Sin Perception eye symbol">
+      <div class="ability-copy">
+        <p><em>Origin:</em> COVID-19 mutation, 2020</p>
+        <p><em>Class:</em> Sensory / Mental</p>
+        <p><em>What it does:</em> Sees guilt as physical marks on the body. The mark shows the crime.</p>
+        <p><em>Limitation:</em> Only works on guilty consciences. Innocent people appear “blank”.</p>
+        <p><em>Corruption:</em> Prolonged use causes him to see his own sins multiplying. He slowly goes insane.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="family">
+    <div class="section-heading">
+      <p class="eyebrow">Known associate</p>
+      <h2>Family</h2>
+    </div>
+    <div class="family-intro hidden">
+      <h3>Austin Miller</h3>
+      <p>Brother</p>
+    </div>
+    <div class="family-layout">
+      <div class="stats-layout">
+        <div class="hidden">
+          <img src="smc.png" class="skeleton" id="smc" alt="Austin Miller silhouette">
+        </div>
+        <div class="stats hidden">
+          <div class="stat" role="button" tabindex="0" data-percent="90"><span>Wisdom</span><span class="stat-value">90%</span></div><div class="bar"><div class="fill"></div></div>
+          <div class="stat" role="button" tabindex="0" data-percent="80"><span>Strength</span><span class="stat-value">80%</span></div><div class="bar"><div class="fill"></div></div>
+          <div class="stat" role="button" tabindex="0" data-percent="90"><span>Dexterity</span><span class="stat-value">90%</span></div><div class="bar"><div class="fill"></div></div>
+          <div class="stat" role="button" tabindex="0" data-percent="90"><span>Intelligence</span><span class="stat-value">90%</span></div><div class="bar"><div class="fill"></div></div>
+          <div class="stat" role="button" tabindex="0" data-percent="100"><span>Charisma</span><span class="stat-value">100%</span></div><div class="bar"><div class="fill"></div></div>
+          <div class="stat" role="button" tabindex="0" data-percent="100"><span>Constitution</span><span class="stat-value">100%</span></div><div class="bar"><div class="fill"></div></div>
+        </div>
+      </div>
+      <p class="occupation">Occupation · Police Detective</p>
+    </div>
+  </section>
+
+  <section class="section" id="author">
+    <div class="section-heading">
+      <p class="eyebrow">The mind behind the story</p>
+      <h2>About the Author</h2>
+    </div>
+    <div class="author-layout hidden">
+      <img src="me.png" class="author-portrait" alt="Giselle Mpye">
       <div>
-        <img src="adobe.png" width="100" height="100" onerror="this.src='https://placehold.co/100x100/330000/ffaaaa?text=Adobe'"/>
-        <img src="office.png" width="150" height="100" onerror="this.src='https://placehold.co/150x100/330000/ffaaaa?text=Office'"/>
-        <img src="web.png" width="100" height="100" onerror="this.src='https://placehold.co/100x100/330000/ffaaaa?text=Web'"/>
-        <img src="data.png" width="150" height="100" onerror="this.src='https://placehold.co/150x100/330000/ffaaaa?text=Data'"/>
-        <img src="java.png" width="100" height="100" onerror="this.src='https://placehold.co/100x100/330000/ffaaaa?text=Java'"/>
-        <img src="c.png" width="100" height="100" onerror="this.src='https://placehold.co/100x100/330000/ffaaaa?text=C++'"/>
+        <h2 class="author-name">Giselle Mpye</h2>
+        <p class="author-role">Aspiring Software Engineer · Multimedia Student</p>
+        <div class="gold-rule" style="margin-left:0"></div>
+        <p style="color:var(--muted);line-height:1.9">A creator exploring the space where technology, storytelling and visual design meet.</p>
       </div>
     </div>
-  </div>
-</div>
+    <div class="author-panels">
+      <div class="author-panel panel hidden">
+        <h3>Introduction</h3>
+        <p>Name: Giselle Mpye</p>
+        <p>Student: Multimedia, second year</p>
+        <p>Where: University of Pretoria</p>
+        <p>Values: Hardworking, responsible and passionate</p>
+        <p>Strive to do everything to the best of my ability, with grace and love, and become the best version of myself.</p>
+      </div>
+      <div class="author-panel panel hidden">
+        <h3>Tools & Skills</h3>
+        <p style="text-align:center">I am proficient in the following:</p>
+        <div class="software-icons">
+          <img src="adobe.png" alt="Adobe">
+          <img src="office.png" alt="Microsoft Office">
+          <img src="web.png" alt="Web development">
+          <img src="data.png" alt="Data">
+          <img src="java.png" alt="Java">
+          <img src="c.png" alt="C++">
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>THE REAPER · CANDOR</footer>
 
 <script>
-/* ============================================
-   STATIC NOISE FUNCTIONALITY (on top of background)
-   ============================================ */
-(function() {
-  const canvas = document.getElementById('static-canvas');
-  const ctx = canvas.getContext('2d');
-  let width, height;
-  let frame = 0;
-
-  function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-  }
-  
-  function drawStatic() {
-    if (!ctx || width === 0 || height === 0) return;
-    
-    const imageData = ctx.createImageData(width, height);
-    const data = imageData.data;
-    const totalPixels = width * height;
-    const staticDensity = 0.005; // 2.5% of pixels are static
-    
-    // fill with mostly transparent
-    for (let i = 0; i < totalPixels * 4; i += 4) {
-      data[i] = 0;     // R
-      data[i+1] = 0;   // G
-      data[i+2] = 0;   // B
-      data[i+3] = 0;   // Alpha - transparent by default
-    }
-    
-    // add static noise pixels
-    const staticCount = Math.floor(totalPixels * staticDensity);
-    for (let n = 0; n < staticCount; n++) {
-      const pixelIndex = Math.floor(Math.random() * totalPixels) * 4;
-      // random brightness for red-tinted noise
-      const brightness = Math.random() < 0.6 ? Math.floor(Math.random() * 80) : 150 + Math.floor(Math.random() * 105);
-      data[pixelIndex] = brightness;     // R - strong red channel
-      data[pixelIndex + 1] = Math.floor(brightness * 0.1); // G - very low
-      data[pixelIndex + 2] = Math.floor(brightness * 0.05); // B - almost none
-      data[pixelIndex + 3] = 100 + Math.floor(Math.random() * 40); // alpha
-    }
-    
-    // occasional scanlines / glitch effect
-    /*frame++;
-    if (frame % 300 > 280) {
-      // glitch flash
-      for (let y = 0; y < height; y += 4 + Math.floor(Math.random() * 8)) {
-        const lineStart = y * width * 4;
-        const glitchAlpha = 0.15 + Math.random() * 0.2;
-        for (let x = 0; x < width * 4; x += 4) {
-          const idx = lineStart + x;
-          data[idx] = Math.min(data[idx] + 80, 200);
-          data[idx+1] = Math.min(data[idx+1] + 20, 60);
-          data[idx+2] = Math.min(data[idx+2] + 10, 40);
-          data[idx+3] = Math.min(data[idx+3] + 40, 180);
-        }
+/* Reveal sections as they enter the viewport. */
+const revealItems = document.querySelectorAll(".hidden");
+if ("IntersectionObserver" in window) {
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("show");
+        revealObserver.unobserve(entry.target);
       }
-    }*/
-    
-    ctx.putImageData(imageData, 0, 0);
-    
-    // add subtle horizontal scanline overlay
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let y = 0; y < height; y += 3) {
-      ctx.fillStyle = `rgba(0, 0, 0, 0.04)`;
-      ctx.fillRect(0, y, width, 1);
+    });
+  }, { threshold: 0.12 });
+  revealItems.forEach((item) => revealObserver.observe(item));
+} else {
+  revealItems.forEach((item) => item.classList.add("show"));
+}
+
+/* Layered scroll + mouse parallax, with restrained dark-crimson fragments. */
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const heroPortrait = document.querySelector(".hero-portrait-wrap");
+const heroBackdrop = document.querySelector(".hero-backdrop");
+if (!reducedMotion) {
+  let pointerX = 0;
+  let pointerY = 0;
+  let scrollY = window.scrollY;
+  window.addEventListener("pointermove", (event) => {
+    pointerX = (event.clientX / window.innerWidth - 0.5) * 2;
+    pointerY = (event.clientY / window.innerHeight - 0.5) * 2;
+    if (heroPortrait) {
+      heroPortrait.style.setProperty("--mouse-x", pointerX.toFixed(3));
+      heroPortrait.style.setProperty("--mouse-y", pointerY.toFixed(3));
+      heroPortrait.style.transform = `translate3d(${pointerX * 8}px, ${scrollY * -0.035 + pointerY * 5}px, 0)`;
     }
-    ctx.restore();
-    
-    requestAnimationFrame(drawStatic);
+  }, { passive: true });
+  window.addEventListener("scroll", () => {
+    scrollY = window.scrollY;
+    if (heroBackdrop) heroBackdrop.style.transform = `translate3d(0, ${scrollY * 0.12}px, 0)`;
+    if (heroPortrait) heroPortrait.style.transform = `translate3d(${pointerX * 8}px, ${scrollY * -0.035 + pointerY * 5}px, 0)`;
+  }, { passive: true });
+  if (heroPortrait) heroPortrait.style.transition = "transform .18s ease-out";
+  const petalField = document.querySelector(".petal-field");
+  if (petalField) {
+    for (let i = 0; i < 16; i++) {
+      const petal = document.createElement("span");
+      petal.className = "petal";
+      petal.style.left = (Math.random() * 100) + "%";
+      petal.style.setProperty("--drift", (Math.random() * 180 - 90) + "px");
+      petal.style.animationDuration = (18 + Math.random() * 22) + "s";
+      petal.style.animationDelay = (-Math.random() * 35) + "s";
+      petal.style.transform = `scale(${0.55 + Math.random() * 0.8})`;
+      petalField.appendChild(petal);
+    }
   }
-  
-  window.addEventListener('resize', () => {
-    resize();
+}
+
+/* Attribute bars and character image changes. */
+let currentImage = "mc-outline.png";
+function activateStat(stat) {
+  const bar = stat.nextElementSibling?.querySelector(".fill");
+  if (!bar) return;
+  const percent = Number(stat.dataset.percent || 0);
+  const imageName = stat.dataset.image;
+  const parentStats = stat.closest(".stats");
+  parentStats.querySelectorAll(".fill").forEach((fill) => {
+    if (fill !== bar) fill.style.width = "0%";
   });
-  resize();
-  drawStatic();
-})();
-
-/* ───────── SLIDE IN (RE-TRIGGER FIX) ───────── */
-const sections = document.querySelectorAll(".hidden");
-
-const observer = new IntersectionObserver((entries)=>{
-  entries.forEach(entry=>{
-    if(entry.isIntersecting){
-      entry.target.classList.add("show");
-    } else {
-      entry.target.classList.remove("show");
+  if (imageName) {
+    const image = document.getElementById("skillImage");
+    if (image) {
+      if (currentImage === imageName && imageName !== "mc-outline.png") {
+        image.src = "mc-outline.png";
+        currentImage = "mc-outline.png";
+        bar.style.width = "0%";
+        return;
+      }
+      image.src = imageName;
+      currentImage = imageName;
+    }
+  }
+  bar.style.width = percent + "%";
+}
+document.querySelectorAll("#statistics .stat").forEach((stat) => {
+  stat.addEventListener("click", () => activateStat(stat));
+  stat.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      activateStat(stat);
     }
   });
-},{threshold:0.3});
-
-sections.forEach(sec=>{
-  observer.observe(sec);
+});
+document.querySelectorAll("#family .stat").forEach((stat) => {
+  const activate = () => {
+    const bar = stat.nextElementSibling?.querySelector(".fill");
+    if (!bar) return;
+    const wasActive = bar.style.width === (stat.dataset.percent + "%");
+    stat.closest(".stats").querySelectorAll(".fill").forEach((fill) => fill.style.width = "0%");
+    if (!wasActive) bar.style.width = stat.dataset.percent + "%";
+  };
+  stat.addEventListener("click", activate);
+  stat.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      activate();
+    }
+  });
 });
 
-/* ───────── EYES ───────── */
-const eye = document.querySelector(".eyes");
-
-const positions = [
-  {x:0,y:0},{x:-15,y:0},{x:-15,y:-15},{x:15,y:0},
-  {x:15,y:15},{x:0,y:-15},{x:-15,y:15},{x:15,y:0}
-];
-
-let i=0;
-function moveEyes(){
-  if(eye){
-    const p = positions[i];
-    eye.style.transform = `translate(${p.x}px,${p.y}px)`;
-    i=(i+1)%positions.length;
-    setTimeout(moveEyes,300);
-  }
-}
-moveEyes();
-
-/* ───────── BARS ───────── */
-let currentImage = "mc-outline.png";
-
-function fillAndSwap(statEl, percent, imageName){
-  const bar = statEl.nextElementSibling.querySelector(".fill");
-  const skillImage = document.getElementById("skillImage");
-
-  if(!bar || !skillImage) return;
-  
-  if(currentImage === imageName && imageName !== 'mc-outline.png'){
-    skillImage.src = "mc-outline.png";
-    currentImage = "mc-outline.png";
-    bar.style.width = "0%";
-  } 
-  else{
-    skillImage.src = imageName;
-    currentImage = imageName;
-    bar.style.width = percent + "%";
-  }
-}
-
-function fill(statEl, percent){
-  const bar = statEl.nextElementSibling.querySelector(".fill");
-  if(bar) bar.style.width = percent + "%";
-}
-
-/* ───────── WEAPONS ───────── */
+/* Weapon reveal. */
 const weapons = {
-  gas: {
-    img: "gas.png",
-    desc: "It removes breath from the space silently, ending awareness before panic can form."
-  },
-  wire: {
-    img: "wire.png",
-    desc: "It restrains completely, stripping away movement until resistance fades into stillness."
-  },
-  corkscrew: {
-    img: "corkscrew.png",
-    desc: "It forces hidden truths to surface, distorting what was meant to stay concealed."
-  },
-  crowbar: {
-    img: "crowbar.png",
-    desc: "It breaks through every barrier, leaving nothing intact that was meant to remain closed."
-  },
-  icepick: {
-    img: "icepick.png",
-    desc: "It targets precise points of vulnerability, ending certainty in an instant."
-  },
-  razor: {
-    img: "razor.png",
-    desc: "It cuts away identity cleanly, leaving no trace of what came before."
-  },
-  needle: {
-    img: "needle.png",
-    desc: "It alters from within quietly, changing what follows without visible disruption."
-  },
-  bolt: {
-    img: "bolt.png",
-    desc: "It seals outcomes into place, making reversal impossible once chosen."
-  },
-  pipe: {
-    img: "pipe.png",
-    desc: "It delivers finality through force, ending resistance without hesitation."
-  },
-  syringe: {
-    img: "syringe.png",
-    desc: "It introduces irreversible change silently, rewriting what remains."
-  }
+  gas: { img: "gas.png", desc: "It removes breath from the space silently, ending awareness before panic can form." },
+  wire: { img: "wire.png", desc: "It restrains completely, stripping away movement until resistance fades into stillness." },
+  corkscrew: { img: "corkscrew.png", desc: "It forces hidden truths to surface, distorting what was meant to stay concealed." },
+  crowbar: { img: "crowbar.png", desc: "It breaks through every barrier, leaving nothing intact that was meant to remain closed." },
+  icepick: { img: "icepick.png", desc: "It targets precise points of vulnerability, ending certainty in an instant." },
+  razor: { img: "razor.png", desc: "It cuts away identity cleanly, leaving no trace of what came before." },
+  needle: { img: "needle.png", desc: "It alters from within quietly, changing what follows without visible disruption." },
+  bolt: { img: "bolt.png", desc: "It seals outcomes into place, making reversal impossible once chosen." },
+  pipe: { img: "pipe.png", desc: "It delivers finality through force, ending resistance without hesitation." },
+  syringe: { img: "syringe.png", desc: "It introduces irreversible change silently, rewriting what remains." }
 };
-
-let currentWeaponVal = null;
-
-function toggleWeapon() {
-  const btn = document.getElementById("weaponToggleBtn");
-  const weaponDiv = document.getElementById("weapon");
-  
-  if (btn.textContent === "Hide Weapon") {
-    weaponDiv.innerHTML = "";
-    btn.textContent = "Reveal Weapon";
-    currentWeaponVal = null;
+const weaponButton = document.getElementById("weaponToggleBtn");
+const weaponContainer = document.getElementById("weapon");
+let weaponVisible = false;
+weaponButton.addEventListener("click", () => {
+  if (weaponVisible) {
+    weaponContainer.replaceChildren();
+    weaponButton.textContent = "Reveal Weapon";
+    weaponVisible = false;
     return;
   }
-  
-  let val = document.getElementById("sin").value;
-  if (!val) return;
-  
-  const weapon = weapons[val];
-  if (!weapon) return;
-  
-  currentWeaponVal = val;
-  weaponDiv.innerHTML = `
-    <div class="weapon-card">
-      <img src="${weapon.img}" class="weapon-img" onerror="this.src='https://placehold.co/200x200/4a0000/ff8888?text=WEAPON'">
-      <p class="weapon-desc">${weapon.desc}</p>
-    </div>
-  `;
-  btn.textContent = "Hide Weapon";
-}
+  const selected = document.getElementById("sin").value;
+  if (!selected || !weapons[selected]) {
+    document.getElementById("sin").focus();
+    return;
+  }
+  const weapon = weapons[selected];
+  const card = document.createElement("div");
+  card.className = "weapon-card panel";
+  const image = document.createElement("img");
+  image.className = "weapon-img";
+  image.src = weapon.img;
+  image.alt = "Weapon";
+  const description = document.createElement("p");
+  description.className = "weapon-desc";
+  description.textContent = weapon.desc;
+  card.append(image, description);
+  weaponContainer.replaceChildren(card);
+  weaponButton.textContent = "Hide Weapon";
+  weaponVisible = true;
+});
 
-// global fallback for images
-document.querySelectorAll('img').forEach(img => {
-  img.onerror = function() {
-    if(!this.dataset.fallbackSet){
-      this.dataset.fallbackSet = true;
-      this.src = 'https://placehold.co/400x500/2a0000/ff8888?text=IMAGE+MISSING';
-    }
-  };
+/* Keep missing local images from breaking the layout; no replacement images are added. */
+document.querySelectorAll("img").forEach((image) => {
+  image.addEventListener("error", () => {
+    image.classList.add("image-unavailable");
+    image.alt = image.alt + " (image file not found)";
+  }, { once: true });
 });
 </script>
-
 </body>
 </html>
