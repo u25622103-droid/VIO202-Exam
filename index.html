@@ -229,7 +229,7 @@ h3 {
   transition: transform .3s ease, border-color .3s ease, background .3s ease;
 }
 .block.red { border-left-color: var(--blossom); background: linear-gradient(110deg, rgba(86,31,35,.48), rgba(17,12,11,.78)); }
-.block:hover { transform: translateX(5px); border-color: var(--gold-bright); }
+.block:hover { transform: translateX(5px) scale(1.02); border-color: var(--gold-bright); }
 .info {
   padding: 28px;
   line-height: 2.1;
@@ -278,7 +278,7 @@ h3 {
   color: var(--gold-bright);
   border-color: var(--gold);
   background: rgba(75,39,35,.52);
-  transform: translateX(4px);
+  transform: translateX(4px) scale(1.02);
 }
 .stat-value { color: var(--blossom); font-size: .76rem; }
 .bar {
@@ -320,7 +320,7 @@ select, button {
 }
 select { min-width: 210px; }
 select:focus-visible, button:focus-visible { outline: 2px solid var(--blossom); outline-offset: 3px; }
-button:hover, select:hover { color: #fff0df; background: #452126; border-color: var(--blossom); transform: translateY(-2px); }
+button:hover, select:hover { color: #fff0df; background: #452126; border-color: var(--blossom); transform: translateY(-2px) scale(1.05); }
 .weapon-card {
   width: min(340px, 100%);
   margin: 38px auto 0;
@@ -393,7 +393,7 @@ em { color: var(--blossom-light); font-style: normal; letter-spacing: .04em; }
 .author-panel p:last-child { margin-bottom: 0; }
 .software-icons { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; }
 .software-icons img { width: 68px; height: 68px; object-fit: contain; filter: sepia(.15); transition: transform .25s ease; }
-.software-icons img:hover { transform: translateY(-5px); }
+.software-icons img:hover { transform: translateY(-5px) scale(1.05); }
 footer {
   padding: 30px 20px 42px;
   border-top: 1px solid var(--line);
@@ -459,7 +459,17 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
 /* Scale interaction: controls sit over the balance graphic rather than below it. */
 .scale-stage { position:relative; width:min(760px,100%); margin:0 auto 24px; min-height:190px; display:grid; place-items:center; }
 .scale-stage .scale { width:100%; max-height:270px; margin:0; object-fit:contain; }
-.scale-stage .weapon-controls { position:absolute; inset:0; display:flex; justify-content:space-between; align-items:center; gap:clamp(12px,8vw,110px); padding:0 clamp(10px,12%,95px); margin:0; pointer-events:none; }
+.scale-stage .weapon-controls { 
+  position:absolute; 
+  inset:0; 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  gap:clamp(12px,8vw,110px); 
+    padding: 0 clamp(40px, 22%, 140px) 0 clamp(20px, 12%, 80px);
+  margin:0; 
+  pointer-events:none; 
+}
 .scale-stage .weapon-controls > * { pointer-events:auto; }
 .scale-stage select { width:min(220px,38%); min-width:0; background:rgba(10,7,7,.94); box-shadow:0 8px 24px rgba(0,0,0,.7); }
 .scale-stage button { max-width:190px; background:rgba(10,7,7,.94); box-shadow:0 8px 24px rgba(0,0,0,.7); }
@@ -484,9 +494,12 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
   outline-offset:3px;
   box-shadow:0 0 18px rgba(142,24,37,.2), 0 0 0 1px rgba(169,138,99,.12);
   background-color:rgba(100,25,32,.08);
+  transform: scale(1.02); /* Added the scale effect */
+  z-index: 10; /* Ensures the element pops above others */
+  position: relative;
 }
 :where(a, button, select, [role="button"]):focus-visible { outline:2px solid var(--gold-bright); outline-offset:4px; }
-.trait-list li:hover { color:var(--gold-bright); transform:translateX(3px); }
+.trait-list li:hover { color:var(--gold-bright); transform:translateX(3px) scale(1.02); }
 .identity-block:hover { background:rgba(100,25,32,.12); }
 @media(max-width:620px) {
   .scale-stage { min-height:150px; }
@@ -498,9 +511,23 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
   .hero-dossier .dossier-rail, .hero-dossier .hero-portrait-wrap, .hero-dossier .dossier-note, .hero-portrait-wrap .mc { animation:none; }
 }
 
-/* Scroll reveal */
-.hidden { opacity: 0; transform: translateY(28px); transition: opacity .75s ease, transform .75s ease; }
-.hidden.show { opacity: 1; transform: translateY(0); }
+/* Scroll reveal - Upgraded for directional sliding and replaying */
+.hidden { 
+  opacity: 0; 
+  transition: opacity 0.85s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.85s cubic-bezier(0.2, 0.8, 0.2, 1); 
+}
+.hidden-up { transform: translateY(60px); }
+.hidden-left { transform: translateX(-60px); }
+.hidden-right { transform: translateX(60px); }
+
+.hidden.show { 
+  opacity: 1; 
+  transform: translate(0, 0); 
+}
+
+/* Add a slight stagger to the author panels so they cascade in */
+.author-panel:nth-child(2) { transition-delay: 0.15s; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
   .hidden { opacity: 1; transform: none; }
@@ -536,6 +563,10 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
   <a href="#weapons">Weapons</a>
   <a href="#awakening">The Awakening</a>
   <a href="#author">Author</a>
+  <!-- Back to XD Prototype Button -->
+<a href="https://xd.adobe.com/view/bf0e6ea5-6694-428a-86c9-ccd67b54a5b3-ea5d/?fullscreen" class="back-to-xd" target="_blank" rel="noopener noreferrer">
+  ← Back to Portfolio
+</a>
 </nav>
 <div class="petal-field" aria-hidden="true"></div>
 
@@ -576,10 +607,10 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
       <p>Select an attribute to reveal its measure</p>
     </div>
     <div class="stats-layout">
-      <div class="hidden">
+      <div class="hidden hidden-left">
         <img src="mc-outline.png" class="skeleton" id="skillImage" alt="Character silhouette">
       </div>
-      <div class="stats hidden">
+      <div class="stats hidden hidden-right">
         <div class="stat" role="button" tabindex="0" data-percent="60" data-image="wisdom.png"><span>Wisdom</span><span class="stat-value">60%</span></div><div class="bar"><div class="fill"></div></div>
         <div class="stat" role="button" tabindex="0" data-percent="80" data-image="strength.png"><span>Strength</span><span class="stat-value">80%</span></div><div class="bar"><div class="fill"></div></div>
         <div class="stat" role="button" tabindex="0" data-percent="83" data-image="dexterity.png"><span>Dexterity</span><span class="stat-value">83%</span></div><div class="bar"><div class="fill"></div></div>
@@ -596,7 +627,7 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
       <h2>Weapons</h2>
       <p>Choose a sin to reveal its corresponding weapon</p>
     </div>
-    <div class="scale-stage hidden">
+    <div class="scale-stage hidden hidden-up">
       <img src="scale.png" class="scale" alt="Scales of judgement">
       <div class="weapon-controls">
       <select id="sin" aria-label="Choose a sin">
@@ -623,7 +654,7 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
       <p class="eyebrow">World record · 2020 onward</p>
       <h2>The Awakening</h2>
     </div>
-    <div class="story-panel panel hidden">
+    <div class="story-panel panel hidden hidden-up">
       <p>Covid did not kill everyone.</p>
       <p>Some woke up wrong.</p>
       <p>Their fevers broke, but something else did not.</p>
@@ -635,7 +666,7 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
       <p class="eyebrow">Awakened ability</p>
       <h2>Sin Perception</h2>
     </div>
-    <div class="ability-grid panel hidden">
+    <div class="ability-grid panel hidden hidden-right">
       <img src="eye.png" class="ability-image" alt="Sin Perception eye symbol">
       <div class="ability-copy">
         <p><em>Origin:</em> COVID-19 mutation, 2020</p>
@@ -652,16 +683,16 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
       <p class="eyebrow">Known associate</p>
       <h2>Family</h2>
     </div>
-    <div class="family-intro hidden">
+    <div class="family-intro hidden hidden-up">
       <h3>Austin Miller</h3>
       <p>Brother</p>
     </div>
     <div class="family-layout">
       <div class="stats-layout">
-        <div class="hidden">
+        <div class="hidden hidden-left">
           <img src="smc.png" class="skeleton" id="smc" alt="Austin Miller silhouette">
         </div>
-        <div class="stats hidden">
+        <div class="stats hidden hidden-right">
           <div class="stat" role="button" tabindex="0" data-percent="90"><span>Wisdom</span><span class="stat-value">90%</span></div><div class="bar"><div class="fill"></div></div>
           <div class="stat" role="button" tabindex="0" data-percent="80"><span>Strength</span><span class="stat-value">80%</span></div><div class="bar"><div class="fill"></div></div>
           <div class="stat" role="button" tabindex="0" data-percent="90"><span>Dexterity</span><span class="stat-value">90%</span></div><div class="bar"><div class="fill"></div></div>
@@ -679,7 +710,7 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
       <p class="eyebrow">The mind behind the story</p>
       <h2>About the Author</h2>
     </div>
-    <div class="author-layout hidden">
+    <div class="author-layout hidden hidden-left">
       <img src="me.png" class="author-portrait" alt="Giselle Mpye">
       <div>
         <h2 class="author-name">Giselle Mpye</h2>
@@ -689,7 +720,7 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
       </div>
     </div>
     <div class="author-panels">
-      <div class="author-panel panel hidden">
+      <div class="author-panel panel hidden hidden-up">
         <h3>Introduction</h3>
         <p>Name: Giselle Mpye</p>
         <p>Student: Multimedia, second year</p>
@@ -697,7 +728,7 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
         <p>Values: Hardworking, responsible and passionate</p>
         <p>Strive to do everything to the best of my ability, with grace and love, and become the best version of myself.</p>
       </div>
-      <div class="author-panel panel hidden">
+      <div class="author-panel panel hidden hidden-up">
         <h3>Tools & Skills</h3>
         <p style="text-align:center">I am proficient in the following:</p>
         <div class="software-icons">
@@ -716,17 +747,23 @@ body::before { opacity:.12; background-image:linear-gradient(rgba(160,20,30,.035
 <footer>THE REAPER · CANDOR</footer>
 
 <script>
-/* Reveal sections as they enter the viewport. */
+/* Reveal sections as they enter the viewport, and hide them when they leave. */
 const revealItems = document.querySelectorAll(".hidden");
 if ("IntersectionObserver" in window) {
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.classList.add("show");
-        revealObserver.unobserve(entry.target);
+      } else {
+        // This removes the 'show' class when you scroll past, 
+        // allowing the animation to play again when you scroll back.
+        entry.target.classList.remove("show");
       }
     });
-  }, { threshold: 0.12 });
+  }, { 
+    threshold: 0.1, 
+    rootMargin: "0px 0px -80px 0px" // Triggers slightly before it fully enters the screen
+  });
   revealItems.forEach((item) => revealObserver.observe(item));
 } else {
   revealItems.forEach((item) => item.classList.add("show"));
