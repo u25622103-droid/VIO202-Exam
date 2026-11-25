@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE REAPER</title>
+
+<style>
+body{
+  background:rgb(0, 0, 0);
+  backdrop-filter: blur(15px) saturate(180%);
+   /*background: url(bg8.jpg) no-repeat center center fixed;*/
+  background-size: cover;
+  height: 100%;
+  color:white;
+  font-family:"Snap ITC", cursive;
+  margin:0;
+  overflow-x:hidden;
+  cursor:url('blood-cursor.png'), crosshair;
+  }
+
+/* STATIC OVERLAY CANVAS - sits on top of background but behind content */
+#static-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.65;
+}
+
+/* content sits above static layer */
+h1, .section, #world, #profile-card, .fam, #brother, #author, #au, 
+.stats-layout, .weapons, .weapon-controls, #weapon, .info, .top, .traits {
+  position: relative;
+  z-index: 10;
+}
+
+/* dark vignette overlay for readability */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.65) 95%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ───────── SLIDE SYSTEM ───────── */
+.section{
+  padding:100px 40px;
+  position:relative;
+}
+
+/* initial hidden state */
+.hidden{
+  opacity:0;
+  transition: all 0.5s ease-in-out;
+  will-change: transform, opacity;
+}
+
+/* directions */
+.from-left{
+  transform: translateX(-100px);
+}
+
+.from-right{
+  transform: translateX(100px);
+}
+
+/* visible state */
+.show{
+  opacity:1 !important;
+  transform: translateX(0) !important;
+}
+
+/* ───────── TEXT ───────── */
+h1{
+  text-align:center;
+  font-size:90px;
+  /* GLOW REMOVED */
+}
+
+/* PAGE 1 */
+.top{
+  display:flex;
+  justify-content:center;
+  gap:40px;
+  align-items:flex-start;
+}
+
+.eyes{width:320px;}
+.mc{width:320px;}
+
+.info{
+  font-size:24px;
+  line-height:2;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.smile{
+  width:300px;
+  animation:zoomSmile 10s ease-in-out infinite;
+}
+
+@keyframes zoomSmile{
+  0%{transform:scale(0.7);}
+  50%{transform:scale(1.05);}
+  100%{transform:scale(0.7);}
+}
+
+/* LEFT */
+.left-column{
+  display:flex;
+  flex-direction:column;
+}
+
+.traits{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:70px;
+}
+
+.block{
+  padding:15px;
+  width:250px;
+  border-radius:10px;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, filter 0.35s ease;
+  cursor: pointer;
+}
+
+/* GREEN BLOCK */
+.green{
+  background:#0f3d0f;
+  border-left: 3px solid #2ecc2e;
+}
+
+/* RED BLOCK */
+.red{
+  background:#5a0000;
+  border-left: 3px solid #cc0000;
+}
+
+/* HOVER EFFECT (BOTH) */
+.block:hover{
+  transform: scale(1.2);
+  filter: brightness(1.2);
+  z-index: 2;
+  /* GLOW REMOVED */
+}
+/* PAGE 2 */
+.stats-layout{
+  display:flex;
+  justify-content:center;
+  gap:80px;
+  margin-top:120px;
+}
+
+.skeleton{width:350px;}
+
+.stats{
+  display:flex;
+  flex-direction:column;
+}
+
+.stat{
+  background:#4b0000;
+  padding:10px 25px;
+  margin:10px 0;
+  border-radius:20px;
+  cursor:pointer;
+  transition: all 0.2s;
+  border-left: 3px solid #8b0000;
+}
+
+.stat:hover{
+  background:#7a0a0a;
+  transform: translateX(5px);
+  /* GLOW REMOVED */
+}
+
+.bar{
+  width:400px;
+  height:8px;
+  background:#222;
+  margin-bottom:15px;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.fill{
+  height:100%;
+  background:#8b0000;
+  width:0%;
+  transition:1s ease-in-out;
+  /* GLOW REMOVED */
+}
+
+/* PAGE 3 */
+.weapons{
+  text-align:center;
+  margin-top:150px;
+}
+
+.scale{width:650px;}
+
+/* FIXED DROPDOWN POSITION */
+.weapon-controls{
+  position:absolute;
+  top:600px;
+  left:49%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:90px;
+  align-items:center;
+}
+
+select, button{
+  background:#4b0000;
+  color:white;
+  border:1px solid #8b0000;
+  padding:10px 20px;
+  border-radius:10px;
+  cursor:pointer;
+  transition: all 0.2s;
+}
+
+select:hover, button:hover{
+  background:#8b0000;
+  /* GLOW REMOVED */
+  transform: scale(1.02);
+}
+
+.weapon-img{
+  margin-top:40px;
+  width:200px;
+}
+
+.weapon-card{
+  margin-top:40px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  /* glassmorphism core */
+  background: rgba(255, 0, 0, 0.08);
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+
+  /* border tuning */
+  border: 1px solid rgba(255, 0, 0, 0.25);
+  border-right-color: rgba(255, 0, 0, 0.15);
+  border-bottom-color: rgba(255, 0, 0, 0.10);
+
+  border-radius: 12px;
+  padding: 20px;
+  width: 250px;
+  margin-left: auto;
+  margin-right: auto;
+
+  /* depth */
+  box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.15),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.35),
+      0 8px 25px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(139, 0, 0, 0.4);
+}
+
+.weapon-desc{
+  margin-top:12px;
+  font-size:12px;
+  opacity:0.85;
+  text-align:center;
+  font-family:Arial;
+
+  color: #ffb3b3;
+  letter-spacing: 0.5px;
+}
+
+.weapon-img{
+  width:200px;
+  filter: drop-shadow(0 0 10px rgba(255,0,0,0.4));
+}
+
+#world {
+  text-align: center;
+  margin-bottom: 20%;
+  font-size: 1.3rem;
+  background: rgba(255, 0, 0, 0.1);
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.141);
+  border-right-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  margin-right: 5px;
+  box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.45),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.15),
+      0 8px 20px rgba(0, 0, 0, 0.3),
+      0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  border-radius: 30px;
+}
+
+#profile-card {
+  margin-left: 12%;
+  margin-bottom: 20%;
+  text-align: center;
+  background: rgba(255, 0, 0, 0.1);
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.141);
+  border-right-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  margin-right: 5px;
+  box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.45),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.15),
+      0 8px 20px rgba(0, 0, 0, 0.3),
+      0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 80%;
+  padding: 15px;
+}
+
+.fam {
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.fam h2 {
+  margin-right: 35%;
+}
+#brother {
+  display: flex;
+  margin-left: 5%;
+  justify-content: space-evenly;
+  margin-bottom: 0%;
+  padding: 20px;
+  border-radius: 30px;
+}
+
+#author {
+  margin-top: 15%;
+  padding: 5%;
+}
+
+
+
+#first {
+  display: flex;
+  flex-direction: column;
+  margin-left: 38%;
+  width: 100%;
+  text-align: center;
+}
+
+#first h2 {
+  font-size: 2rem;
+  margin-bottom: 0%;
+}
+
+#first p {
+  font-size: 1.1rem;
+}
+
+#first img {
+  border-radius: 100%;
+  /* GLOW REMOVED */
+}
+
+#info {
+  margin-right: 100%;
+  width: 30%;
+}
+
+#extra {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5%;
+}
+
+#intro {
+width: 50%;
+  text-align: center;
+  background-image: url("bg4.jpg");
+  /*background: rgba(255, 0, 0, 0.1);*/
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.141);
+  border-right-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  margin-right: 5px;
+  box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.45),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.15),
+      0 8px 20px rgba(0, 0, 0, 0.3),
+      0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 25px;
+}
+
+#goals {
+    width: 40%;
+  margin-left: 5%;
+  background-image: url("bg4.jpg");
+  /*background: rgba(255, 0, 0, 0.1);*/
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.141);
+  border-right-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  margin-right: 5px;
+  box-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.45),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.15),
+      0 8px 20px rgba(0, 0, 0, 0.3),
+      0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 25px;
+}
+
+em {
+  font-size: 1.3rem;
+  color: #ff8888;
+}
+</style>
+</head>
+
+<body>
+
+<!-- STATIC NOISE CANVAS - on top of background -->
+<canvas id="static-canvas"></canvas>
+
+<h1 class="hidden from-left">THE REAPER</h1>
+
+<!-- PAGE 1 -->
+<div class="section hidden from-left">
+
+<div class="top">
+
+  <div class="hidden from-left">
+    <div class="left-column">
+      <img src="eyes.png" class="eyes" onerror="this.src='https://placehold.co/320x200/4a0000/ff8888?text=EYES'">
+
+      <div class="traits">
+        <div class="block green">Sin Perception<br>Adaptive<br>Patient</div>
+        <div class="block red">Overconfident<br>Addicted<br>Obsessive</div>
+      </div>
+    </div>
+  </div>
+
+  <img src="mc.png" class="mc" onerror="this.src='https://placehold.co/400x500/2d0202/ffaaaa?text=REAPER'">
+
+  <div class="hidden from-right">
+    <div class="info from-right">
+      AKA Michael Miller<br>
+      Age: 25<br>
+      Gender: Male<br>
+      Status: <span style="color:lime;">ALIVE</span>
+      <br><br>
+      <img src="smile.png" class="smile" onerror="this.src='https://placehold.co/300x200/4a0000/ffaaaa?text=SMILE'">
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+<!-- PAGE 2 -->
+<div>
+
+<div class="stats-layout">
+
+  <div class="hidden from-left">
+    <img src="mc-outline.png" class="skeleton" id="skillImage" onerror="this.src='https://placehold.co/350x500/1f0101/dd8888?text=SHADOW'">
+  </div>
+<div class="hidden from-right">
+  <div class="stats">
+
+    <div class="stat" onclick="fillAndSwap(this,60,'wisdom.png')">Wisdom</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fillAndSwap(this,80,'strength.png')">Strength</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fillAndSwap(this,83,'dexterity.png')">Dexterity</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fillAndSwap(this,85,'intelligence.png')">Intelligence</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fillAndSwap(this,30,'mc-outline.png')">Charisma</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fillAndSwap(this,100,'mc.png')">Constitution</div>
+    <div class="bar"><div class="fill"></div></div>
+  </div>
+</div>
+</div>
+
+</div>
+
+<!-- PAGE 3 -->
+<div class="section weapons hidden from-left">
+
+<h1 class="hidden from-right">WEAPONS</h1>
+
+<img src="scale.png" class="scale" onerror="this.src='https://placehold.co/650x150/2e0000/ff9999?text=SCALE'">
+
+<div class="weapon-controls">
+  <select id="sin" class="hidden from-left">
+    <option value="">Choose Sin</option>
+    <option value="gas">Arsonist</option>
+    <option value="wire">Gossip</option>
+    <option value="corkscrew">Glutton</option>
+    <option value="crowbar">Hoarder</option>
+    <option value="icepick">Voyeur</option>
+    <option value="razor">Coward</option>
+    <option value="needle">Liar</option>
+    <option value="bolt">Thief</option>
+    <option value="pipe">Pride</option>
+    <option value="syringe">Envy</option>
+  </select>
+
+  <button id="weaponToggleBtn" onclick="toggleWeapon()" class="hidden from-right">Reveal Weapon</button>
+</div>
+
+<div id="weapon"></div>
+
+</div>
+<div id="world">
+  <h1>The Awakening</h1>
+  <p class="hidden from-left">Covid did not kill everyone.</p>
+  <p class="hidden from-right">Some woke up wrong.</p>
+  <p class="hidden from-left">Their fevers broke , but something else did not.</p>
+  <p class="hidden from-right">Now they hear whispers, see guilt like smoke and move things with their mind.</p>
+  <p class="hidden from-left">The virus did not just infect them - it unlocked abilities buried in human DNA for centuries.</p>
+</div>
+
+<div id="profile-card">
+  <h2 class="hidden from-right">Awakened ability: Sin perception</h2>
+  <img src="eye.png" width="300" height="300" class="hidden from-left" onerror="this.src='https://placehold.co/300x300/2a0000/ff8888?text=EYE'"/>
+  <p class="hidden from-right"><em>Origin:</em> COVID-19 mutation, 2020</p>
+  <p class="hidden from-left"><em>Class:</em> Sensory / Mental</p>
+  <p class="hidden from-right"><em>What it does:</em> Sees guilt as physical marks on the body. The mark shows the crime</p>
+  <p class="hidden from-left"><em>Limitation:</em> Only works on guilty consciences. Innocent people appear "blank"</p>
+  <p class="hidden from-right"><em>Corruption:</em> Prolonged used causes him to see his own sins multiplying. He slowing goes insane.</p>
+</div>
+
+<div class="fam">
+  <h1 class="hidden from-right">Family</h1>
+</div>
+
+<div id="brother">
+  <h2 class="hidden from-left">Name: Austin Miller </h2>
+  <h2 class="hidden from-right">Relationship: Brother</h2>
+</div>
+<div class="stats-layout">
+
+  <div class="hidden from-left">
+    <img src="smc-outline.png" class="skeleton" id="smc" onerror="this.src='https://placehold.co/350x500/1f0303/dd8888?text=AUSTIN'">
+  </div>
+<div class="hidden from-right">
+  <div class="stats">
+    
+
+    <div class="stat" onclick="fill(this,90)">Wisdom</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fill(this,80)">Strength</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fill(this,90)">Dexterity</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fill(this,90)">Intelligence</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fill(this,100)">Charisma</div>
+    <div class="bar"><div class="fill"></div></div>
+
+    <div class="stat" onclick="fill(this,100)">Constitution</div>
+    <div class="bar"><div class="fill"></div></div>
+  </div>
+</div>
+
+</div>
+
+<div class="fam">
+  <h2 class="hidden from-left">Occupation: Police Detective </h2>
+</div>
+
+ <h1 id="au" class="hidden from-left">About author</h1>
+<div id="author">
+  <div id="first">
+    <img src="me.png" width="300" height="400" class="hidden from-right"/>
+    <div id="info">
+      <h2 class="hidden from-left">GISELLE MPYE</h2>
+      <p class="hidden from-right">ASPIRING SOFTWARE ENGINEER | MULTIMEDIA  STUDENT</p>
+    </div>
+  </div>
+  <div id="extra">
+    <div id="intro" class="hidden from-left">
+      <p>Name: Giselle Mpye</p>
+      <p>Student: Multimedia Second year</p>
+      <p>Where: University of Pretoria</p>
+      <p>Values: Hardworking, Responsible and Passionate</p>
+      <p>Conclusion: Strive to do everything to the best of my ability with the grace and love of GOD and become the best version of myself</p>
+    </div>
+    <div id="goals" class="hidden from-right">
+      <p> I am proficient in the following: </p>
+      <div>
+        <img src="adobe.png" width="100" height="100" onerror="this.src='https://placehold.co/100x100/330000/ffaaaa?text=Adobe'"/>
+        <img src="office.png" width="150" height="100" onerror="this.src='https://placehold.co/150x100/330000/ffaaaa?text=Office'"/>
+        <img src="web.png" width="100" height="100" onerror="this.src='https://placehold.co/100x100/330000/ffaaaa?text=Web'"/>
+        <img src="data.png" width="150" height="100" onerror="this.src='https://placehold.co/150x100/330000/ffaaaa?text=Data'"/>
+        <img src="java.png" width="100" height="100" onerror="this.src='https://placehold.co/100x100/330000/ffaaaa?text=Java'"/>
+        <img src="c.png" width="100" height="100" onerror="this.src='https://placehold.co/100x100/330000/ffaaaa?text=C++'"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================
+   STATIC NOISE FUNCTIONALITY (on top of background)
+   ============================================ */
+(function() {
+  const canvas = document.getElementById('static-canvas');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  let frame = 0;
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+  }
+  
+  function drawStatic() {
+    if (!ctx || width === 0 || height === 0) return;
+    
+    const imageData = ctx.createImageData(width, height);
+    const data = imageData.data;
+    const totalPixels = width * height;
+    const staticDensity = 0.005; // 2.5% of pixels are static
+    
+    // fill with mostly transparent
+    for (let i = 0; i < totalPixels * 4; i += 4) {
+      data[i] = 0;     // R
+      data[i+1] = 0;   // G
+      data[i+2] = 0;   // B
+      data[i+3] = 0;   // Alpha - transparent by default
+    }
+    
+    // add static noise pixels
+    const staticCount = Math.floor(totalPixels * staticDensity);
+    for (let n = 0; n < staticCount; n++) {
+      const pixelIndex = Math.floor(Math.random() * totalPixels) * 4;
+      // random brightness for red-tinted noise
+      const brightness = Math.random() < 0.6 ? Math.floor(Math.random() * 80) : 150 + Math.floor(Math.random() * 105);
+      data[pixelIndex] = brightness;     // R - strong red channel
+      data[pixelIndex + 1] = Math.floor(brightness * 0.1); // G - very low
+      data[pixelIndex + 2] = Math.floor(brightness * 0.05); // B - almost none
+      data[pixelIndex + 3] = 100 + Math.floor(Math.random() * 40); // alpha
+    }
+    
+    // occasional scanlines / glitch effect
+    /*frame++;
+    if (frame % 300 > 280) {
+      // glitch flash
+      for (let y = 0; y < height; y += 4 + Math.floor(Math.random() * 8)) {
+        const lineStart = y * width * 4;
+        const glitchAlpha = 0.15 + Math.random() * 0.2;
+        for (let x = 0; x < width * 4; x += 4) {
+          const idx = lineStart + x;
+          data[idx] = Math.min(data[idx] + 80, 200);
+          data[idx+1] = Math.min(data[idx+1] + 20, 60);
+          data[idx+2] = Math.min(data[idx+2] + 10, 40);
+          data[idx+3] = Math.min(data[idx+3] + 40, 180);
+        }
+      }
+    }*/
+    
+    ctx.putImageData(imageData, 0, 0);
+    
+    // add subtle horizontal scanline overlay
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let y = 0; y < height; y += 3) {
+      ctx.fillStyle = `rgba(0, 0, 0, 0.04)`;
+      ctx.fillRect(0, y, width, 1);
+    }
+    ctx.restore();
+    
+    requestAnimationFrame(drawStatic);
+  }
+  
+  window.addEventListener('resize', () => {
+    resize();
+  });
+  resize();
+  drawStatic();
+})();
+
+/* ───────── SLIDE IN (RE-TRIGGER FIX) ───────── */
+const sections = document.querySelectorAll(".hidden");
+
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add("show");
+    } else {
+      entry.target.classList.remove("show");
+    }
+  });
+},{threshold:0.3});
+
+sections.forEach(sec=>{
+  observer.observe(sec);
+});
+
+/* ───────── EYES ───────── */
+const eye = document.querySelector(".eyes");
+
+const positions = [
+  {x:0,y:0},{x:-15,y:0},{x:-15,y:-15},{x:15,y:0},
+  {x:15,y:15},{x:0,y:-15},{x:-15,y:15},{x:15,y:0}
+];
+
+let i=0;
+function moveEyes(){
+  if(eye){
+    const p = positions[i];
+    eye.style.transform = `translate(${p.x}px,${p.y}px)`;
+    i=(i+1)%positions.length;
+    setTimeout(moveEyes,300);
+  }
+}
+moveEyes();
+
+/* ───────── BARS ───────── */
+let currentImage = "mc-outline.png";
+
+function fillAndSwap(statEl, percent, imageName){
+  const bar = statEl.nextElementSibling.querySelector(".fill");
+  const skillImage = document.getElementById("skillImage");
+
+  if(!bar || !skillImage) return;
+  
+  if(currentImage === imageName && imageName !== 'mc-outline.png'){
+    skillImage.src = "mc-outline.png";
+    currentImage = "mc-outline.png";
+    bar.style.width = "0%";
+  } 
+  else{
+    skillImage.src = imageName;
+    currentImage = imageName;
+    bar.style.width = percent + "%";
+  }
+}
+
+function fill(statEl, percent){
+  const bar = statEl.nextElementSibling.querySelector(".fill");
+  if(bar) bar.style.width = percent + "%";
+}
+
+/* ───────── WEAPONS ───────── */
+const weapons = {
+  gas: {
+    img: "gas.png",
+    desc: "It removes breath from the space silently, ending awareness before panic can form."
+  },
+  wire: {
+    img: "wire.png",
+    desc: "It restrains completely, stripping away movement until resistance fades into stillness."
+  },
+  corkscrew: {
+    img: "corkscrew.png",
+    desc: "It forces hidden truths to surface, distorting what was meant to stay concealed."
+  },
+  crowbar: {
+    img: "crowbar.png",
+    desc: "It breaks through every barrier, leaving nothing intact that was meant to remain closed."
+  },
+  icepick: {
+    img: "icepick.png",
+    desc: "It targets precise points of vulnerability, ending certainty in an instant."
+  },
+  razor: {
+    img: "razor.png",
+    desc: "It cuts away identity cleanly, leaving no trace of what came before."
+  },
+  needle: {
+    img: "needle.png",
+    desc: "It alters from within quietly, changing what follows without visible disruption."
+  },
+  bolt: {
+    img: "bolt.png",
+    desc: "It seals outcomes into place, making reversal impossible once chosen."
+  },
+  pipe: {
+    img: "pipe.png",
+    desc: "It delivers finality through force, ending resistance without hesitation."
+  },
+  syringe: {
+    img: "syringe.png",
+    desc: "It introduces irreversible change silently, rewriting what remains."
+  }
+};
+
+let currentWeaponVal = null;
+
+function toggleWeapon() {
+  const btn = document.getElementById("weaponToggleBtn");
+  const weaponDiv = document.getElementById("weapon");
+  
+  if (btn.textContent === "Hide Weapon") {
+    weaponDiv.innerHTML = "";
+    btn.textContent = "Reveal Weapon";
+    currentWeaponVal = null;
+    return;
+  }
+  
+  let val = document.getElementById("sin").value;
+  if (!val) return;
+  
+  const weapon = weapons[val];
+  if (!weapon) return;
+  
+  currentWeaponVal = val;
+  weaponDiv.innerHTML = `
+    <div class="weapon-card">
+      <img src="${weapon.img}" class="weapon-img" onerror="this.src='https://placehold.co/200x200/4a0000/ff8888?text=WEAPON'">
+      <p class="weapon-desc">${weapon.desc}</p>
+    </div>
+  `;
+  btn.textContent = "Hide Weapon";
+}
+
+// global fallback for images
+document.querySelectorAll('img').forEach(img => {
+  img.onerror = function() {
+    if(!this.dataset.fallbackSet){
+      this.dataset.fallbackSet = true;
+      this.src = 'https://placehold.co/400x500/2a0000/ff8888?text=IMAGE+MISSING';
+    }
+  };
+});
+</script>
+
+</body>
+</html>
